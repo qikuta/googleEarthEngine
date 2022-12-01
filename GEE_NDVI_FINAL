@@ -1,0 +1,86 @@
+/*
+Author: Quentin Ikuta modified from GEARS Lab https://www.geospatialecology.com/emm_lab_3/#compute-ndvi
+Code Title: surface reflectance summer 2022
+Development Date(recent): November 2022
+import datasets including landsat 8, CNP boundary 
+
+GENERAL NOTES
+   * import datasets including landsat 8 L2 C2 T1, CNP boundary 
+   * landsat8 surface reflectance imported above (Collection 2, Series 1)
+   
+   TO DO: modify 13-21 given changes: 
+   - comment headers/general formatting
+   - efficiency 
+   - if possible, add .clip(CNF) in add.Layer(layer) function 
+   - comment out the add.Layer function for extra layers used in intermediate stages of this process 
+   
+    
+*/
+
+
+
+//Step 1// NDVI time series function to be put into step 3
+function addNDVI(image) {
+    var ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']);
+    return image.addBands(ndvi);
+        }
+        
+
+var filtered = SR_L8.filterDate('2022-06-01', '2022-08-30');
+var with_ndvi = filtered.map(addNDVI);
+
+//Step 3// select and mosaic the highest  values 
+var greenest = with_ndvi.qualityMosaic('nd');
+var rgb_vis = {min: 0, max: 50000, bands: ['SR_B4', 'SR_B3', 'SR_B2']};
+
+// NOTE // Uncomment the following 2 .addLayer lines if you need to view the exported items in GEE
+//Map.addLayer(filtered.median(), rgb_vis, 'RGB (median)');
+//Map.addLayer(greenest, rgb_vis, 'RGB (greenest pixel)-with NDVI band');
+//print(Chart.image.series(with_ndvi.select('nd'), roi));
+
+
+//Step 4// NDVI EXPORT
+var ndvi_image = greenest.select(['nd']);
+Map.addLayer(greenest.clip(CNF), {bands: ['nd'], min: 0, max: 1}, 'ndvi');
+
+Export.image.toDrive({
+    image: ndvi_image,
+    description: 'GreenestPixel-with-NDVI-band2022',
+    scale: 30,
+    fileFormat: 'GeoTIFF',
+    region: CNF,
+});
+
+
+
+//Step 5// RGB Export
+//var rgb_vis = {min: 0, max: 50000, bands: ['SR_B4', 'SR_B3', 'SR_B2']};
+//
+//function addNDVI(image) {
+//  var ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']);
+//    return image.addBands(ndvi);
+//      }
+//   
+
+
+//var filtered = SR_L8.filterDate('2022-06-01', '2022-08-30');
+//var with_ndvi = filtered.map(addNDVI);
+var greenest = with_ndvi.qualityMosaic('nd');
+var rgb = greenest.visualize(rgb_vis);
+Map.addLayer(rgb.clip(CNF), {}, 'RGB (greenest pixel)');
+Export.image.toDrive({
+    image: rgb,
+    description: 'GreenestPixel2022',
+    scale: 30,
+    fileFormat: 'GeoTIFF',
+    region: CNF,
+});
+
+
+/*
+SOURCES
+
+ * https://www.geospatialecology.com/emm_lab_3/
+ * https://www.youtube.com/watch?v=Wik07UyjnDs
+ 
+*/

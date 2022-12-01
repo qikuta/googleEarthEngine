@@ -4,6 +4,8 @@ Code Title: surface reflectance summer 2022
 Development Date(recent): November 2022
 import datasets including landsat 8, CNP boundary 
 
+GEE Link: https://code.earthengine.google.com/50fca4dbaedf112212fdd9ca09e12bba
+
 GENERAL NOTES
    * import datasets including landsat 8 L2 C2 T1, CNP boundary 
    * landsat8 surface reflectance imported above (Collection 2, Series 1)
